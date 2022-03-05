@@ -47,7 +47,7 @@ namespace NetCore6WebAPI.Controllers.Authentication
                     userName = tokenRequest.UserName,
                     firstName = "Test",
                     lastName = "Tester",
-                    fingetPrint = Guid.NewGuid(),
+                    fingerPrint = Guid.NewGuid(),
                 });
             }
 
