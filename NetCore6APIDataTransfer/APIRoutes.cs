@@ -10,7 +10,7 @@
         public static class WebAuthenticationRoute
         {
             public const string PostWebLoginInformation = "authenticate/web/login";
-            public const string PostWebLoginAntiForgeryCookie = "authenticate/web/antiforgerycookie";
+            public const string GetWebLoginAntiForgeryCookie = "authenticate/web/antiforgerycookie";
             public const string PostWebLogoutInformation = "authenticate/web/logout";
         }
 

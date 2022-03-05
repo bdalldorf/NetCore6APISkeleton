@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NetCore6APIDataTransfer.Models;
 using static NetCore6APIDataTransfer.ApiRoutes;
@@ -8,6 +9,7 @@ namespace NetCore6WebAPI.Controllers.Controllers
     /// The HttpGet, HttpPost, HttpPut, HttpDelete Attributes aren't necessary for the methods the way I am using the routes.
     /// But if you added a base route to the class Route Attribute they can be used properly.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("")]
     public class APITestController : Controller
@@ -34,7 +36,6 @@ namespace NetCore6WebAPI.Controllers.Controllers
         {
             if (id != 0)
             {
-
                 return Ok(id);
             }
 
