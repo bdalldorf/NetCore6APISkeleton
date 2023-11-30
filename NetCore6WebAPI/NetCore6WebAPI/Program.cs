@@ -1,21 +1,27 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder _WebApplicationBuilder = WebApplication.CreateBuilder(args);
+ConfigurationManager _ConfigurationManager = _WebApplicationBuilder.Configuration;
 
-// This sets up the configuration to pull information from the appsettings.json file
-//"JWT:ValidAudience": "yourdomain.com",
-//"JWT:ValidIssuer": "yourdomain.com",
-//"JWT:IssuerSigningKey": "THISISAREALLYSECRETKEYONLYUSEDINTHISPROGRAM"
-ConfigurationManager configuration = builder.Configuration;
-
-// Add services to the container.
+// Adding Cors
+// READ THIS: https://learn.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-8.0#set-the-allowed-origins
+string _MainCorsPolicyName = "CorsPolicy";
+_WebApplicationBuilder.Services.AddCors(options =>
+{
+    options.AddPolicy(_MainCorsPolicyName, builder => builder.AllowAnyOrigin()
+    //.WithOrigins("https://example.com", "https://www.example.com")
+    .AllowAnyHeader()
+    .AllowAnyMethod());
+    //.AllowCredentials()); // Add AllowCredentials() if you use WithOrigins()
+});
 
 // Adding Authentication
-builder.Services.AddAuthentication(options => {
+_WebApplicationBuilder.Services.AddAuthentication(options => {
     options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -35,19 +41,23 @@ builder.Services.AddAuthentication(options => {
     };
 }).AddJwtBearer(options =>
 {
+    // This sets up the configuration to pull information from the appsettings.json file
+    //"JWT:ValidAudience": "yourdomain.com",
+    //"JWT:ValidIssuer": "yourdomain.com",
+    //"JWT:IssuerSigningKey": "THISISAREALLYSECRETKEYONLYUSEDINTHISPROGRAM"
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = ApiConstants.ValidateIssuer,
         ValidateAudience = ApiConstants.ValidateAudience,
         ValidateLifetime = ApiConstants.ValidateLifetime,
         ValidateIssuerSigningKey = ApiConstants.ValidateIssuerSigningKey,
-        ValidAudience = configuration["JWT:ValidAudience"],
-        ValidIssuer = configuration["JWT:ValidIssuer"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:IssuerSigningKey"]))
+        ValidAudience = _ConfigurationManager["JWT:ValidAudience"],
+        ValidIssuer = _ConfigurationManager["JWT:ValidIssuer"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_ConfigurationManager["JWT:IssuerSigningKey"]))
     };
 });
 
-builder.Services.AddAntiforgery(options =>
+_WebApplicationBuilder.Services.AddAntiforgery(options =>
 {
     //options.FormFieldName = "AntiforgeryFieldname";
     options.HeaderName = "X-XSRF-TOKEN";
@@ -55,36 +65,28 @@ builder.Services.AddAntiforgery(options =>
 
 });
 
-builder.Services.AddMvc(options =>
+_WebApplicationBuilder.Services.AddMvc(options =>
 {
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
 });
 
-builder.Services.AddSingleton<IConfiguration>(configuration);
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("CorsPolicy", builder => builder.AllowAnyOrigin()
-    .AllowAnyHeader()
-    .AllowAnyMethod()
-    .AllowCredentials());
-});
-
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
+_WebApplicationBuilder.Services.AddSingleton<IConfiguration>(_ConfigurationManager);
+_WebApplicationBuilder.Services.AddControllers();
+_WebApplicationBuilder.Services.AddEndpointsApiExplorer();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddSwaggerGen();
+_WebApplicationBuilder.Services.AddSwaggerGen();
 
-var app = builder.Build();
+var app = _WebApplicationBuilder.Build();
 
-// Configure the HTTP request pipeline.
+//Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseCors(_MainCorsPolicyName);
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

@@ -9,7 +9,7 @@ namespace NetCore6WebAPI.Controllers.Controllers
     /// The HttpGet, HttpPost, HttpPut, HttpDelete Attributes aren't necessary for the methods the way I am using the routes.
     /// But if you added a base route to the class Route Attribute they can be used properly.
     /// </summary>
-    [Authorize]
+    //[Authorize]
     [ApiController]
     [Route("")]
     public class APITestController : Controller
@@ -31,6 +31,7 @@ namespace NetCore6WebAPI.Controllers.Controllers
             return $"Item {id}";
         }
 
+        [IgnoreAntiforgeryToken]
         [HttpPost(APITestRoute.SaveApiTestItem)]
         public IActionResult Post([FromBody]int id)
         {
